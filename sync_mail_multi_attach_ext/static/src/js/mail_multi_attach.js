@@ -38,7 +38,7 @@ openerp.sync_mail_multi_attach_ext = function (session){
                         type: 'POST',
                         data: querydata,
                         cache: false,
-                        processData: false,  
+                        processData: false,
                         contentType: false,
                         success: function(id){
                             self.attachment_ids.push({
@@ -56,28 +56,22 @@ openerp.sync_mail_multi_attach_ext = function (session){
             }
         },
     });
-    
+
     session.web.Sidebar.include({
-        
+
         on_attachment_changed: function (event) {
             event.preventDefault();
-        event.stopPropagation();
             event.stopPropagation();
             var self = this;
-            var callback = $("input[name=callback]").val();
-            var model = $("input[name=model]").val();
-            var id = $("input[name=id]").val();
+            var form = $(this);
+            var callback = $("input[name=callback]:last").val();
+            var model = $("input[name=model]:last").val();
+            var id = $("input[name=id]:last").val();
             var $target = $(event.target);
-            if ($target.val() !== '') {                
-
-                // submit file
+            var retmsg = '';
+            if ($target.val() !== '') {
+                var cont =0;
                 _.each($target[0].files, function(file){
-                
-                //When we Submits the Page name in ufile field shall be added. 
-                //So, initially adding other files whose name not in ufile. 
-                //By Submit file in ufile fieled shall be added.
-                if(file.name!=$("input[name=ufile]").val())
-                {
                     var querydata = new FormData();
                     querydata.append('callback', callback);
                     querydata.append('ufile',file);
@@ -88,15 +82,21 @@ openerp.sync_mail_multi_attach_ext = function (session){
                         type: 'POST',
                         data: querydata,
                         cache: false,
-                        processData: false,  
-                        contentType: false,                        
+                        processData: false,
+                        contentType: false,
+                        success: function(msg) {
+
+                        cont+=1;
+                        if(cont==$target[0].files.length)
+                        {
+			  var iframe = $('iframe').first();
+			  if ($(iframe).attr('id').indexOf("oe_fileupload") >= 0){
+			      $(iframe).contents().find('body').html(msg);
+			  }
+                        }
+                    }
                     });
-                 }   
-
-                });               
-
-                this.$('form.oe_form_binary_form').submit();
-                
+                });
             }
         },
         });
@@ -137,7 +137,7 @@ openerp.sync_mail_multi_attach_ext = function (session){
                         type: 'POST',
                         data: querydata,
                         cache: false,
-                        processData: false,  
+                        processData: false,
                         contentType: false,
                         success: function(id){
                             self.data[id] = {
@@ -168,10 +168,10 @@ openerp.sync_mail_multi_attach_ext = function (session){
                 _.each(this.data, function(file){
                      values.push(file.id);
                 });
-                this.set({'value': values});                
+                this.set({'value': values});
             }
             this.render_value();
-        },  
+        },
     });
 
     session.mail.MessageCommon.include({
